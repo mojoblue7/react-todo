@@ -3,6 +3,8 @@ import logo from './logo.svg';
 import './App.css';
 import Counter from './Counter/Counter';
 import Info from './Info/Info';
+import ReducerCounter from './ReducerCounter/ReducerCounter';
+import Average from './Average/Average';
 
 function App() {
   const [visible, setVisible] = useState('');
@@ -10,7 +12,9 @@ function App() {
   return (
     <div>
       {/* <Counter></Counter> */}
-      <button
+
+      {/* Info Component Tutorial */}
+      {/* <button
         onClick={() => {
           setVisible(!visible);
         }}
@@ -18,7 +22,14 @@ function App() {
         {visible ? '숨기기' : '보이기'}
       </button>
       <hr />
-      {visible && <Info />}
+      {visible && <Info />} */}
+
+      {/* Counter useReducer Tutorial */}
+      {/* <ReducerCounter /> */}
+
+      {/* Info useReducer Tutorial */}
+      {/* <Info /> */}
+      <Average />
     </div>
   );
 }
