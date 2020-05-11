@@ -28,8 +28,8 @@ function App() {
       {/* <ReducerCounter /> */}
 
       {/* Info useReducer Tutorial */}
-      {/* <Info /> */}
-      <Average />
+      <Info />
+      {/* <Average /> */}
     </div>
   );
 }
