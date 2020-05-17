@@ -2,6 +2,7 @@ import React from 'react';
 import logo from './logo.svg';
 import './App.css';
 import SassComponent from './SassComponent/SassComponent';
+import CSSModule from './CSSModule';
 
 function App() {
   return (
@@ -22,7 +23,8 @@ function App() {
     //   </header>
     // </div>
     <div>
-      <SassComponent />
+      {/* <SassComponent /> */}
+      <CSSModule />
     </div>
   );
 }
