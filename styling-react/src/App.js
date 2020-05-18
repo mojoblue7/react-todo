@@ -4,6 +4,7 @@ import './App.css';
 import SassComponent from './SassComponent/SassComponent';
 import CSSModule from './CSSModule';
 import StyledComponent from './StyledComponent/StyledComponent';
+import MyComponent from './StyledComponent/MyComponent';
 
 function App() {
   return (
