@@ -3,6 +3,7 @@ import logo from './logo.svg';
 import './App.css';
 import SassComponent from './SassComponent/SassComponent';
 import CSSModule from './CSSModule';
+import StyledComponent from './StyledComponent/StyledComponent';
 
 function App() {
   return (
@@ -22,9 +23,12 @@ function App() {
     //     </a>
     //   </header>
     // </div>
+    // <div>
+    //   {/* <SassComponent /> */}
+    //   <CSSModule />
+    // </div>
     <div>
-      {/* <SassComponent /> */}
-      <CSSModule />
+      <StyledComponent />
     </div>
   );
 }
