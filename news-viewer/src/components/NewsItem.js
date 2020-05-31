@@ -33,7 +33,7 @@ const NewsItemBlock = styled.div`
   }
 `;
 
-const NewsItem = ({ key, article }) => {
+const NewsItem = ({ article }) => {
   const { title, description, url, urlToImage } = article;
   return (
     <NewsItemBlock>

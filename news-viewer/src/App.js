@@ -1,36 +1,9 @@
-import React, { useState } from 'react';
-import axios from 'axios';
-import NewsList from './NewsList';
+import React, { useState, useCallback } from 'react';
+import { Route } from 'react-router-dom';
+import NewsPage from './components/NewPage';
 
 const App = () => {
-  const [data, setData] = useState(null);
-  const onClick = async () => {
-    try {
-      const response = await axios.get(
-        'http://newsapi.org/v2/top-headlines?country=kr' +
-          '&category=sports&apiKey=fad3a6f03d89412ca9ed131932749b25',
-      );
-      setData(response.data);
-    } catch (e) {
-      console.log(e);
-    }
-  };
-
-  return (
-    <NewsList />
-    // <div>
-    //   <div>
-    //     <button onClick={onClick}>불러오기</button>
-    //   </div>
-    //   {data && (
-    //     <textarea
-    //       row={7}
-    //       value={JSON.stringify(data, null, 2)}
-    //       readOnly={true}
-    //     />
-    //   )}
-    // </div>
-  );
+  return <Route path="/:category?" component={NewsPage} />;
 };
 
 export default App;
