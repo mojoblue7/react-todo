@@ -1,3 +1,10 @@
+/**
+ * 작성자: 이세희
+ * 작성일: 2020.06.08
+ * 파일명: SampleContainer.js
+ * Sample의 동작을 구현
+ */
+
 import React from 'react';
 import { connect } from 'react-redux';
 import Sample from '../components/Sample';
@@ -12,11 +19,20 @@ const SampleContainer = ({
   loadingPost,
   loadingUsers,
 }) => {
-  // 클래스 형태 컴포넌트였다면 componentDidMount
   useEffect(() => {
-    getPost(1);
-    getUsers(1);
+    const fn = async () => {
+      // useEffetct에 파라미터로 넣는 함수는 async로 할 수 없기 때문에
+      // 그 내부에서 async 함수를 선언하고 호출해 줌
+      try {
+        await getPost(1);
+        await getUsers(1);
+      } catch (e) {
+        console.log(e); //에러 조회
+      }
+    };
+    fn();
   }, [getPost, getUsers]);
+
   return (
     <Sample
       post={post}
@@ -28,11 +44,11 @@ const SampleContainer = ({
 };
 
 export default connect(
-  ({ sample }) => ({
+  ({ sample, loading }) => ({
     post: sample.post,
     users: sample.users,
-    loadingPost: sample.loading.GET_POST,
-    loadingUsers: sample.loading.GET_USERS,
+    loadingPost: loading['sample/GET_POST'],
+    loadingUsers: loading['sample/GET_USERS'],
   }),
   {
     getPost,

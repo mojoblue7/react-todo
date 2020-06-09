@@ -1,3 +1,11 @@
+/**
+ * 작성자: 이세희
+ * 작성일: 2020.06.08
+ * 파일명: Sample.js
+ * 프레젠테이셔널 컴포넌트
+ * Sample의 html 코드를 구현
+ */
+
 import React from 'react';
 
 const Sample = ({ loadingPost, loadingUsers, post, users }) => {
