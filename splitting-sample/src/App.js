@@ -1,35 +1,25 @@
-import React, { Component } from 'react';
+import React, { Component, Suspense, useState } from 'react';
 import logo from './logo.svg';
 import './App.css';
+const SplitMe = React.lazy(() => import('./SplitMe'));
 
-class App extends Component {
-  state = {
-    SplitMe: null,
+function App() {
+  const [visible, setVisible] = useState(false);
+  const onClick = () => {
+    setVisible(true);
   };
 
-  handleClick = async () => {
-    const loadedModule = await import('./SplitMe');
-    this.setState({
-      SplitMe: loadedModule.default,
-    });
-  };
-  // const onClick = () => {
-  //   import('./notify').then((result) => result.default());
-  //   // stage-3 단계의 dynamic import 문법 - webpack에서 지원
-  // };
-
-  render() {
-    const { SplitMe } = this.state;
-    return (
-      <div className='App'>
-        <header className='App-header'>
-          <img src={logo} className='App-logo' alt='logo' />
-          <p onClick={this.handleClick}>Hello React!</p>
-          {SplitMe && <SplitMe />}
-        </header>
-      </div>
-    );
-  }
+  return (
+    <div className='App'>
+      <header className='App-header'>
+        <img src={logo} className='App-logo' alt='logo' />
+        <p onClick={onClick}>Hello React!</p>
+        <Suspense fallback={<div>loading...</div>}>
+          {visible && <SplitMe />}
+        </Suspense>
+      </header>
+    </div>
+  );
 }
 
 export default App;
