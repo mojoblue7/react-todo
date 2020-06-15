@@ -8,8 +8,13 @@ import fs from 'fs';
 import { createStore, applyMiddleware } from 'redux';
 import { Provider } from 'react-redux';
 import thunk from 'redux-thunk';
-import rootReducer from './modules';
 import PreloadContext from './lib/PreloadContext';
+import createSagaMiddleware from 'redux-saga';
+import rootReducer, { rootSaga } from './modules';
+import { END } from 'redux-saga';
+import { ChunkExtractor, ChunkExtractorManager } from '@loadable/server';
+
+const statsFile = path.resolve('./build/loadable-stats.json');
 
 // asset-manifest.json에서 파일 경로들을 조회
 const manifest = JSON.parse(
@@ -21,7 +26,7 @@ const chunks = Object.keys(manifest.files)
   .map((key) => `<script src="${manifest.files[key]}"></script>`) // 스크립트 태그로 변환하고
   .join(''); // 합침
 
-function createPage(root, stateScript) {
+function createPage(root, tags) {
   return `<DOCTYPE html>
     <html lang="en">
     <head>
@@ -33,6 +38,8 @@ function createPage(root, stateScript) {
         />
       <meta name="theme-color" content="#000000" />
       <title>React App</title>
+      ${tags.styles}
+      ${tags.links}
       <link href="${manifest.files['main.css']}"  rel="stylesheet" />
     </head>
     <body>
@@ -40,10 +47,7 @@ function createPage(root, stateScript) {
       <div id="root">
         ${root}
       </div>
-      ${stateScript}
-      <script src="${manifest.files['runtime-main.js']}"></script>
-      ${chunks}
-      <script src="${manifest.files['main.js']}"></script>
+      ${tags.scripts}
     </body>
     </html>
   `;
@@ -54,24 +58,41 @@ const app = express();
 const serverRender = async (req, res, next) => {
   // 이 함수는 404가 떠야할 상황에 404를 띄우지 않고 서버 사이드 렌더링을 함
   const context = {};
-  const store = createStore(rootReducer, applyMiddleware(thunk));
+  const sagaMiddleware = createSagaMiddleware();
+
+  const store = createStore(
+    rootReducer,
+    applyMiddleware(thunk, sagaMiddleware)
+  );
+
+  // saga를 사용하면 promise를 반환하지 않으므로 하는 작업
+  const sagaPromise = sagaMiddleware.run(rootSaga).toPromise();
+
   const preloadContext = {
     done: false,
     promises: [],
   };
 
+  // 필요한 파일을 추출하기 위한 ChunkExtractor
+  const extractor = new ChunkExtractor({ statsFile });
+
   const jsx = (
-    <PreloadContext.Provider value={preloadContext}>
-      <Provider store={store}>
-        <StaticRouter location={req.url} context={context}>
-          <App />
-        </StaticRouter>
-      </Provider>
-    </PreloadContext.Provider>
+    <ChunkExtractorManager extractor={extractor}>
+      <PreloadContext.Provider value={preloadContext}>
+        <Provider store={store}>
+          <StaticRouter location={req.url} context={context}>
+            <App />
+          </StaticRouter>
+        </Provider>
+      </PreloadContext.Provider>
+    </ChunkExtractorManager>
   );
 
   ReactDOMServer.renderToStaticMarkup(jsx); // renderToStaticMarkup으로 한번 렌더링함
+  store.dispatch(END); //  redux-saga의 END 액션을 발생시키면 액션을 모니터링하는 사가들이 모두 종료
+
   try {
+    await sagaPromise; // 기존에 진행 중이던 saga들이 모두 끝날 때까지 기다림
     await Promise.all(preloadContext.promises); // 모든 프로미스들을 기다림
   } catch (e) {
     return res.status(500);
@@ -82,9 +103,16 @@ const serverRender = async (req, res, next) => {
   // JSON을 문자열로 변환하고 악성 스크립트가 실행되는 것을 방지하기 위해 <를 치환 처리
   // https://redux.js.org/recipes/server-rendering#security-considerations
   const stateString = JSON.stringify(store.getState()).replace(/</g, '\\u003c');
-  const stateScript = `<script>__PRELOADED_STATE__=${stateScript}</script>`; // 리덕스 초기 상태를 스크립트로 주입
+  const stateScript = `<script>__PRELOADED_STATE__=${stateString}</script>`; // 리덕스 초기 상태를 스크립트로 주입
 
-  res.send(createPage(root, stateScript)); // 클라이언트에게 결과물을 응답함.
+  // 미리 불러와야 하는 스타일/스크립트를 추출하고
+  const tags = {
+    scripts: stateScript + extractor.getScriptTags(), // 스크립트 앞부분에 리덕스 상태 넣기
+    links: extractor.getLinkTags(),
+    styles: extractor.getStyleTags(),
+  };
+
+  res.send(createPage(root, tags)); // 클라이언트에게 결과물을 응답함.
 };
 
 const serve = express.static(path.resolve('./build'), {
